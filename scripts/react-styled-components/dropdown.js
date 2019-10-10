@@ -108,16 +108,16 @@ export default class Dropdown extends React.Component {
     // Get the dropdown that is a parent of the clicked element. If any.
     const theSelf = e.target;
     const dataHookVal = theSelf.getAttribute
-      ? theSelf.getAttribute('data-hook')
+      ? theSelf.getAttribute('data-dropdown')
       : null;
     const parentDataHookVal = theSelf.parentNode.getAttribute
-      ? theSelf.parentNode.getAttribute('data-hook')
+      ? theSelf.parentNode.getAttribute('data-dropdown')
       : null;
 
     if (theSelf.tagName === 'BODY' ||
       theSelf.tagName === 'HTML' ||
-      dataHookVal === 'dropdown:close' ||
-      parentDataHookVal === 'dropdown:close') {
+      dataHookVal === 'click.close' ||
+      parentDataHookVal === 'click.close') {
       this.close();
       return;
     }
@@ -138,7 +138,7 @@ export default class Dropdown extends React.Component {
 
     if (closestInstance.getAttribute('data-drop-el') === 'content' && uuid === this.uuid) {
       // If we're dealing with the content for this instance don't do anything.
-      // The content elements can use data-hook='dropdown:close' if they need to
+      // The content elements can use data-dropdown='click.close' if they need to
       // close the dropdown, otherwise a trigger click is needed.
       return;
     }
@@ -562,6 +562,7 @@ export const DropInset = styled.div`
   &:last-child {
     margin-bottom: -${glbS};
     box-shadow: inset 0 ${themeVal('layout.border')} 0 0 ${themeVal('color.shadow')};
+    border-radius: 0 0 ${themeVal('shape.rounded')} ${themeVal('shape.rounded')};
   }
 
   &:only-child {
