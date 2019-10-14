@@ -1,102 +1,14 @@
-'use strict';
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { CSSTransition } from 'react-transition-group';
 
 import styled, { keyframes } from 'styled-components';
-import { antialiased } from '../../styles/helpers';
-import { themeVal } from '../../styles/utils/general';
-import { multiply } from '../../styles/utils/math';
+import { rgba } from 'polished';
 
-const bounceAnim = keyframes`
-  0%,
-  80%,
-  100% { 
-    transform: scale(0);
-  }
+import { themeVal, stylizeFunction } from '../../styles/utils/general';
+import collecticon from '../../styles/collecticons';
 
-  40% { 
-    transform: scale(1.0);
-  }
-`;
-
-const Spinner = styled.div`
-  font-size: 0;
-  border-radius: ${themeVal('shape.rounded')};
-  padding: ${themeVal('layout.space')} ${multiply(themeVal('layout.space'), 2)};
-`;
-
-const LoadingPane = styled.div`
-  ${antialiased()}
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9997;
-  cursor: not-allowed;
-  background: rgba(255,255,255,0.32);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  &.loading-pane-enter {
-    transform: translate3d(0, 0, 0);
-    transition: opacity 0.32s ease 0s, visibility 0.32s linear 0s;
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  &.loading-pane-enter-active {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  &.loading-pane-exit {
-    transition: opacity 0.32s ease 0s, visibility 0.32s linear 0s;
-    opacity: 1;
-    visibility: visible;
-  }
-
-  &.loading-pane-exit-active {
-    opacity: 0;
-    visibility: hidden;
-  }
-`;
-
-const LoadingPaneInner = styled.div`
-  border-radius: ${themeVal('shape.rounded')};
-  background: #fff;
-  padding: ${multiply(themeVal('layout.space'), 2)};
-  box-shadow: 0 0 0 ${themeVal('layout.border')} ${themeVal('color.shadow')};
-  text-align: center;
-`;
-
-const Bounce = styled.div`
-  width: 1rem;
-  height: 1rem;
-  background: ${themeVal('type.base.color')};
-  border-radius: ${themeVal('shape.ellipsoid')};
-  display: inline-block;
-  margin: 0 0.5rem;
-  animation: ${bounceAnim} 1.4s infinite ease-in-out both;
-
-  &:first-child {
-    margin-left: 0;
-  }
-
-  &:last-child {
-    margin-right: 0;
-  }
-  
-  /* Animation delays */
-  &:nth-child(1) {
-    animation-delay: -0.32s;
-  }
-  &:nth-child(2) {
-    animation-delay: -0.16s;
-  }
-`;
+const _rgba = stylizeFunction(rgba);
 
 // Minimum time the loading is visible.
 const MIN_TIME = 512;
@@ -113,7 +25,70 @@ let theGlobalLoading = null;
 // all were hidden.
 let theGlobalLoadingCount = 0;
 
-export default class GlobalLoading extends React.Component {
+const rotate360 = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
+const Spinner = styled.div`
+  display: flex;
+
+  &::before {
+    ${collecticon('arrow-spin-cw')}
+    animation: ${rotate360} 1s linear infinite;
+    transform: translateZ(0);
+    font-size: 3rem;
+    color: ${themeVal('color.primary')};
+  }
+`;
+
+const GlobalLoadingWrapper = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 9997;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-flow: column;
+  cursor: not-allowed;
+  background: radial-gradient(farthest-side, #fff, ${_rgba(themeVal('color.surface'), 0.64)});
+
+  &.overlay-loader-enter {
+    transform: translate3d(0, 0, 0);
+    transition: opacity 0.32s ease 0s, visibility 0.32s linear 0s;
+    opacity: 0;
+    visibility: hidden;
+
+    &.overlay-loader-enter-active {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  &.overlay-loader-exit {
+    transition: opacity 0.32s ease 0s, visibility 0.32s linear 0s;
+    opacity: 1;
+    visibility: visible;
+
+    &.overlay-loader-exit-active {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+`;
+
+const Message = styled.p`
+  margin-top: ${themeVal('layout.space')};
+`;
+
+export class GlobalLoading extends React.Component {
   constructor (props) {
     super(props);
     this.componentAddedBodyClass = false;
@@ -164,21 +139,13 @@ export default class GlobalLoading extends React.Component {
         in={revealed}
         unmountOnExit
         appear
-        classNames='loading-pane'
+        classNames='overlay-loader'
         timeout={{ enter: 300, exit: 300 }}
       >
-
-        <LoadingPane>
-          <LoadingPaneInner>
-            <Spinner>
-              <Bounce />
-              <Bounce />
-              <Bounce />
-            </Spinner>
-            {message && <p>{message}</p>}
-          </LoadingPaneInner>
-        </LoadingPane>
-
+        <GlobalLoadingWrapper>
+          <Spinner />
+          {message && <Message>{message}</Message>}
+        </GlobalLoadingWrapper>
       </CSSTransition>
     ), document.body);  // eslint-disable-line
   }
@@ -188,7 +155,7 @@ export default class GlobalLoading extends React.Component {
  * Show a global loading.
  * The loading has a minimum visible time defined by the MIN_TIME constant.
  * This will prevent flickers in the interface when the action is very fast.
- * @param  {Number} count Define how many loadings to show. This will not
+ * @param  {number} count Define how many loadings to show. This will not
  *                        show multiple loadings on the page but will increment
  *                        a counter. This is helpful when there are many actions
  *                        that require a loading.
@@ -197,6 +164,8 @@ export default class GlobalLoading extends React.Component {
  *                        Each function call will increment the counter.
  *                        Default 1
  * @param {boolean} force Sets the count to the given value without incrementing
+ *                        Default false
+ * @param {string} message Sets an optional message to display. Default to empty.
  *
  * @example
  * showGlobalLoading()
@@ -222,11 +191,17 @@ export function showGlobalLoading (count = 1, force = false, message = '') {
 
   theGlobalLoading.setState({
     showTimestamp: Date.now(),
-    revealed: true,
-    message
+    message,
+    revealed: true
   });
 }
 
+/**
+ * Utility method to show the global loading with the message as the first
+ * parameter.
+ *
+ * @see showGlobalLoading()
+ */
 export function showGlobalLoadingMessage (message, count = 1, force = false) {
   return showGlobalLoading(count, force, message);
 }
@@ -269,10 +244,9 @@ export function hideGlobalLoading (count = 1, force = false, cb = () => {}) {
   }
 
   // Decrement counter by given amount without going below 0.
-  theGlobalLoadingCount = force
+  theGlobalLoadingCount = Math.max(0, force
     ? count
-    : theGlobalLoadingCount - count;
-  if (theGlobalLoadingCount < 0) theGlobalLoadingCount = 0;
+    : theGlobalLoadingCount - count);
 
   const time = theGlobalLoading.state.showTimestamp;
   const diff = Date.now() - time;
