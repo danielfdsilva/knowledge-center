@@ -195,7 +195,7 @@ We could argue that the the global config only needs to load once and then the c
   }
 ```
 
-Not that this will not store the data on the provided path. That's the reducer job, and you'll have to setup your state slices accordingly.
+Note that this will not store the data on the provided path. That's the reducer job, and you'll have to setup your state slices accordingly.
 For example:
 
 @redux/config.js
