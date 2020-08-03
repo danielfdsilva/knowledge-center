@@ -31,8 +31,7 @@ export function makeActions (actionName, hasKey) {
     : {
       invalidate: () => invalidate(),
       request: () => request(),
-      receive: (data, error = null) =>
-        receive(undefined, data, (error = null))
+      receive: (data, error = null) => receive(undefined, data, error)
     };
 }
 
