@@ -3,7 +3,7 @@
 Jump to the end for [recipes](#recipes).
 
 The `reduxeed.js` exports a series of functions that make creating redux reducers for api responses a breeze. The idea is to reduce the boilerplate of commonly required logic for asynchronous API requests.
-That being said there are some assumption being made.
+That being said there are some assumptions being made.
 
 The following guide will explain those assumptions and how they came to be.
 
@@ -80,9 +80,9 @@ If you were to create one from scratch for our example, it would look something 
 ```
 
 Each and every API state will have the following 5 properties:
-  - `fetching` Tracks whether a request is in inflight
+  - `fetching` Tracks whether a request is in flight.
   - `fetched` Tracks whether a request was completed successfully or not.
-  - `error` Tracks whether a request errored.
+  - `error` Tracks whether a request errored by storing the error.
   - `data` Holds the data send by the request if it was successful.
   - `receivedAt` Timestamp of when the request finished.
 
@@ -98,7 +98,7 @@ Once we have the reducer, we can create the thunk that will make the api request
 The flow of the thunk is something like:
   - Indicate request is started
   - Make the request
-  - Dispatch result.
+  - Return result or error
 
 Following our example, a thunk made from scratch would be:
 
@@ -159,7 +159,7 @@ If the response from the api does not suit your needs immediately you can also c
       url: 'http://example.com',
       mutator: (body, headers) => {
         // In this case we're discarding the body completely and just returning
-        // the headers. Unlikely use case, but hey, whatever float your goat.
+        // the headers. Unlikely use case, but hey, whatever floats your goat.
         return headers;
       },
       requestFn: exampleActions.request,
